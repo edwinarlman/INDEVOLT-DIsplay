@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 #include <Adafruit_NeoPixel.h>
 
-#define RGB_PIN 42
+#define RGB_PIN 42      // vaak GPIO42 op ESP32-S3
 #define NUMPIXELS 1
 
 int pulseBrightness = 0;
@@ -210,6 +210,37 @@ void updateIndevolt()
 
     updateStatusLed(batteryState);
 
+    switch (batteryState)
+    {
+        case 1001: // Charging
+            lv_obj_set_style_arc_color(
+                arcSOC,
+                lv_palette_main(LV_PALETTE_GREEN),
+                LV_PART_INDICATOR);
+            break;
+
+        case 1002: // Discharging
+            lv_obj_set_style_arc_color(
+                arcSOC,
+                lv_palette_main(LV_PALETTE_RED),
+                LV_PART_INDICATOR);
+            break;
+
+        case 1000: // Stand-by
+            lv_obj_set_style_arc_color(
+                arcSOC,
+                lv_color_hex(0x40C4FF),
+                LV_PART_INDICATOR);
+            break;
+
+        default:
+            lv_obj_set_style_arc_color(
+                arcSOC,
+                lv_color_white(),
+                LV_PART_INDICATOR);
+            break;
+    }
+
     int soc          = doc["6002"];
 
     float acOutput   = doc["2101"];
@@ -358,8 +389,8 @@ void createGui()
     lv_obj_align(
         lblTitle,
         LV_ALIGN_TOP_LEFT,
-        10,
-        10);
+        2,
+        2);
 
     // WiFi
 
@@ -377,12 +408,27 @@ void createGui()
     lv_obj_align(
         lblWifiIcon,
         LV_ALIGN_TOP_RIGHT,
-        -10,
-        12);
+        -2,
+        2);
 
     // SOC ARC
 
     arcSOC = lv_arc_create(scr);
+
+    lv_obj_set_style_arc_color(
+        arcSOC,
+        lv_color_hex(0x404040),
+        LV_PART_MAIN);
+
+    lv_obj_set_style_arc_width(
+        arcSOC,
+        12,
+        LV_PART_MAIN);
+
+    lv_obj_set_style_arc_width(
+        arcSOC,
+        12,
+        LV_PART_INDICATOR);
 
     lv_obj_set_style_arc_width(
         arcSOC,
@@ -562,6 +608,13 @@ void loop()
 
     static uint32_t lastWifiUpdate = 0;
     static uint32_t lastIndevoltUpdate = 0;
+    static uint32_t lastLedUpdate = 0;
+
+    if (millis() - lastLedUpdate > 50)
+    {
+        lastLedUpdate = millis();
+        updateStatusLed(currentBatteryState);
+    }
 
     if (millis() - lastWifiUpdate > 5000)
     {
