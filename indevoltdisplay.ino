@@ -23,10 +23,10 @@ Adafruit_NeoPixel rgb(
 
 #define TFT_BL 45
 
+#define TFT_BL 45
+
 const char* ssid = "YOUR-SSID";
 const char* password = "YOUR-PASSWORD";
-
-const String INDEVOLT_IP = "YOUR-INDEVOLT-IP";
 
 const String API_URL =
     "http://" + INDEVOLT_IP +
@@ -163,12 +163,20 @@ void updateWifiSignal()
         lblWifiIcon,
         LV_SYMBOL_WIFI);
 
-    lv_obj_set_style_text_color(
-        lblWifiIcon,
-        WiFi.status() == WL_CONNECTED
-            ? lv_color_hex(0x40C4FF)
-            : lv_color_hex(0xFF0000),
-        0);
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        lv_obj_set_style_text_color(
+            lblWifiIcon,
+            lv_color_white(),
+            0);
+    }
+    else
+    {
+        lv_obj_set_style_text_color(
+            lblWifiIcon,
+            lv_color_hex(0xFF0000),
+            0);
+    }
 }
 
 // ======================================================
@@ -389,7 +397,7 @@ void createGui()
     lv_obj_align(
         lblTitle,
         LV_ALIGN_TOP_LEFT,
-        2,
+        10,
         2);
 
     // WiFi
@@ -408,7 +416,7 @@ void createGui()
     lv_obj_align(
         lblWifiIcon,
         LV_ALIGN_TOP_RIGHT,
-        -2,
+        -10,
         2);
 
     // SOC ARC
